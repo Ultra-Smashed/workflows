@@ -7,12 +7,14 @@ services:
       - ..:/workspace:cached
       - bun-cache:/home/bun/.bun/cache:delegated
     command: sleep infinity
+    user: bun
     deploy:
       resources:
         limits:
           memory: 8G
     environment:
       - NODE_ENV=development
+      - HOME=/home/bun
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/simstudio
       - BETTER_AUTH_URL=http://localhost:3000
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
