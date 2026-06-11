@@ -1,43 +1,51 @@
-FROM oven/bun:1.3.13-alpine
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
-# Install necessary packages for development
-RUN apk add --no-cache \
-    git \
-    curl \
-    wget \
-    jq \
-    sudo \
-    postgresql-client \
-    vim \
-    nano \
+ENV DEBIAN_FRONTEND=noninteractive
+ENV BUN_INSTALL=/home/bun/.bun
+ENV TMPDIR=/home/bun/.cache/tmp
+ENV PATH=/home/bun/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
     bash \
     bash-completion \
-    zsh \
-    zsh-vcs \
     ca-certificates \
-    shadow
+    git \
+    g++ \
+    curl \
+    wget \
+    make \
+    jq \
+    sudo \
+    vim \
+    nano \
+    zsh \
+    pkg-config \
+    python3 \
+    postgresql-client \
+    unzip \
+  && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user with matching UID/GID
 ARG USERNAME=bun
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Create user group if it doesn't exist
-RUN if ! getent group $USER_GID >/dev/null; then \
-        addgroup -g $USER_GID $USERNAME; \
-    fi
+RUN if getent passwd vscode >/dev/null; then userdel -r vscode; fi \
+  && if getent group $USER_GID >/dev/null; then groupmod -n $USERNAME "$(getent group $USER_GID | cut -d: -f1)"; else groupadd --gid $USER_GID $USERNAME; fi \
+  && useradd --uid $USER_UID --gid $USER_GID --create-home --shell /bin/bash $USERNAME \
+  && echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME \
+  && mkdir -p /home/$USERNAME/.cache/tmp /home/$USERNAME/.cursor-server \
+  && chown -R $USERNAME:$USERNAME /home/$USERNAME/.cache /home/$USERNAME/.cursor-server
 
-# Create user if it doesn't exist
-RUN if ! getent passwd $USER_UID >/dev/null; then \
-        adduser -D -u $USER_UID -G $(getent group $USER_GID | cut -d: -f1) $USERNAME; \
-    fi
-
-# Add sudo support
-RUN echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
-
-# Set up shell environment
 RUN echo "export PATH=\$PATH:/home/$USERNAME/.bun/bin" >> /etc/profile
+
+USER bun
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.13"
+USER root
+
+COPY .devcontainer/install-commands.sh /tmp/install-commands.sh
+RUN bash /tmp/install-commands.sh && rm /tmp/install-commands.sh
 
 WORKDIR /workspace
 
@@ -45,3 +53,4 @@ WORKDIR /workspace
 EXPOSE 3000
 EXPOSE 3001
 EXPOSE 3002
+EXPOSE 3003

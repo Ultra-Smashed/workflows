@@ -1,0 +1,11 @@
+{
+  "$schema": "https://www.cursor.com/schemas/environment.schema.json",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "install": "bash scripts/cursor-cloud-install.sh",
+  "start": "bash scripts/cursor-cloud-start.sh",
+  "ports": [3000, 3001, 3002, 3003, 5432],
+  "user": "ubuntu"
+}

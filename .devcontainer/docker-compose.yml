@@ -7,30 +7,35 @@ services:
       - ..:/workspace:cached
       - bun-cache:/home/bun/.bun/cache:delegated
     command: sleep infinity
+    user: bun
     deploy:
       resources:
         limits:
           memory: 8G
     environment:
       - NODE_ENV=development
+      - HOME=/home/bun
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/simstudio
       - BETTER_AUTH_URL=http://localhost:3000
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-your_auth_secret_here}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-your_encryption_key_here}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret-at-least-32-characters-long}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-dev-encryption-key-at-least-32-chars}
+      - API_ENCRYPTION_KEY=${API_ENCRYPTION_KEY:-}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-dev-internal-api-secret-min-32-chars}
       - COPILOT_API_KEY=${COPILOT_API_KEY}
       - SIM_AGENT_API_URL=${SIM_AGENT_API_URL}
       - OLLAMA_URL=${OLLAMA_URL:-http://localhost:11434}
+      - SOCKET_SERVER_URL=${SOCKET_SERVER_URL:-http://realtime:3002}
       - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL:-}
       - BUN_INSTALL_CACHE_DIR=/home/bun/.bun/cache
+      - TMPDIR=/home/bun/.cache/tmp
     depends_on:
       db:
         condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
     ports:
       - "3000:3000"
       - "3001:3001"
+      - "3003:3003"
     working_dir: /workspace
 
   realtime:
@@ -50,7 +55,10 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/simstudio
       - BETTER_AUTH_URL=http://localhost:3000
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-your_auth_secret_here}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret-at-least-32-characters-long}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-dev-internal-api-secret-min-32-chars}
+      - REDIS_URL=${REDIS_URL:-}
+      - TMPDIR=/home/bun/.cache/tmp
     depends_on:
       db:
         condition: service_healthy

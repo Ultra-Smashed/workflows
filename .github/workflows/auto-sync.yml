@@ -1,0 +1,48 @@
+name: Auto Sync Upstream
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-sync-upstream
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync upstream main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/simstudioai/sim.git || git remote set-url upstream https://github.com/simstudioai/sim.git
+          git fetch upstream main
+
+      - name: Prepare sync branch
+        run: |
+          git checkout -B auto-sync/upstream-main origin/main
+          git merge --no-edit upstream/main
+          git push --force-with-lease origin auto-sync/upstream-main
+
+      - name: Open or update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr view auto-sync/upstream-main --base main >/dev/null 2>&1 || gh pr create --base main --head auto-sync/upstream-main --title 'chore(sync): update fork from upstream main' --body 'Automated upstream sync from simstudioai/sim main.'
+
