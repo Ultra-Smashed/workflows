@@ -13,6 +13,7 @@ const PLANS = [
     description: 'Prototype agents, tables, and knowledge workflows without a card.',
     accent: 'from-cyan-200 to-lime-200',
     features: ['1,000 starter credits', '5 GB file storage', '1 personal workspace'],
+    featured: false,
   },
   {
     name: 'Pro',
@@ -30,6 +31,7 @@ const PLANS = [
     description: 'Scale multi-step agents with deeper usage pools and team-ready limits.',
     accent: 'from-pink-200 to-amber-100',
     features: ['25,000 credits/month', '500 GB file storage', '10 personal workspaces'],
+    featured: false,
   },
 ] as const
 
