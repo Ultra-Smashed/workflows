@@ -8,13 +8,17 @@ RUN apt-get update \
     bash-completion \
     ca-certificates \
     git \
+    g++ \
     curl \
     wget \
+    make \
     jq \
     sudo \
     vim \
     nano \
     zsh \
+    pkg-config \
+    python3 \
     postgresql-client \
   && rm -rf /var/lib/apt/lists/*
 

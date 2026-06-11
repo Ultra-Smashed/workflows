@@ -11,19 +11,23 @@ RUN apt-get update \
     curl \
     docker-compose-v2 \
     docker.io \
+    g++ \
     git \
     iptables \
     jq \
+    make \
     openssh-client \
     openssl \
     postgresql-client \
+    pkg-config \
+    python3 \
     ripgrep \
     sudo \
     tmux \
     unzip \
   && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /bin/bash ubuntu \
+RUN if ! getent passwd ubuntu >/dev/null; then useradd -m -s /bin/bash ubuntu; fi \
   && usermod -aG docker ubuntu \
   && echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ubuntu \
   && chmod 0440 /etc/sudoers.d/ubuntu
@@ -31,4 +35,4 @@ RUN useradd -m -s /bin/bash ubuntu \
 USER ubuntu
 WORKDIR /workspace
 
-RUN curl -fsSL https://bun.sh/install | bash
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.13"

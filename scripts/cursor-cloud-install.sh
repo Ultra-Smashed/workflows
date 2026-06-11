@@ -6,13 +6,14 @@ cd "$ROOT_DIR"
 
 export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
 export PATH="$BUN_INSTALL/bin:$PATH"
+REQUIRED_BUN_VERSION="1.3.13"
 
 install_bun() {
-  if command -v bun >/dev/null 2>&1; then
+  if command -v bun >/dev/null 2>&1 && [ "$(bun --version)" = "$REQUIRED_BUN_VERSION" ]; then
     return
   fi
 
-  curl -fsSL https://bun.sh/install | bash
+  curl -fsSL https://bun.sh/install | bash -s "bun-v${REQUIRED_BUN_VERSION}"
   export PATH="$BUN_INSTALL/bin:$PATH"
 }
 
@@ -27,7 +28,7 @@ install_docker() {
   fi
 
   sudo apt-get update
-  sudo apt-get install -y docker.io docker-compose-v2
+  sudo apt-get install -y docker.io docker-compose-v2 python3 make g++ pkg-config
 }
 
 install_bun
