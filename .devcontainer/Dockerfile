@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV BUN_INSTALL=/home/bun/.bun
+ENV TMPDIR=/home/bun/.cache/tmp
 ENV PATH=/home/bun/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update \
@@ -33,7 +34,9 @@ RUN if getent passwd vscode >/dev/null; then userdel -r vscode; fi \
   && if getent group $USER_GID >/dev/null; then groupmod -n $USERNAME "$(getent group $USER_GID | cut -d: -f1)"; else groupadd --gid $USER_GID $USERNAME; fi \
   && useradd --uid $USER_UID --gid $USER_GID --create-home --shell /bin/bash $USERNAME \
   && echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USERNAME \
-  && chmod 0440 /etc/sudoers.d/$USERNAME
+  && chmod 0440 /etc/sudoers.d/$USERNAME \
+  && mkdir -p /home/$USERNAME/.cache/tmp /home/$USERNAME/.cursor-server \
+  && chown -R $USERNAME:$USERNAME /home/$USERNAME/.cache /home/$USERNAME/.cursor-server
 
 RUN echo "export PATH=\$PATH:/home/$USERNAME/.bun/bin" >> /etc/profile
 
