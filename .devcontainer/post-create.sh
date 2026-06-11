@@ -52,6 +52,45 @@ if [ ! -f ~/.bashrc ] && [ ! -f ~/.zshrc ]; then
   echo "fi" >> ~/.bashrc
 fi
 
+echo "🔧 Installing project command wrappers..."
+sudo tee /usr/local/bin/sim-start > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace && exec bun run dev:full
+EOF
+sudo tee /usr/local/bin/sim-app > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace && exec bun run dev
+EOF
+sudo tee /usr/local/bin/sim-sockets > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace && exec bun run dev:sockets
+EOF
+sudo tee /usr/local/bin/sim-migrate > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace/packages/db && exec bun run db:migrate
+EOF
+sudo tee /usr/local/bin/sim-generate > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace/packages/db && exec bunx drizzle-kit generate --config=./drizzle.config.ts
+EOF
+sudo tee /usr/local/bin/sim-rebuild > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace && bun run build && exec bun run start
+EOF
+sudo tee /usr/local/bin/docs-dev > /dev/null <<'EOF'
+#!/usr/bin/env bash
+cd /workspace/apps/docs && exec bun run dev
+EOF
+sudo tee /usr/local/bin/pgc > /dev/null <<'EOF'
+#!/usr/bin/env bash
+exec env PGPASSWORD=postgres psql -h db -U postgres -d simstudio "$@"
+EOF
+sudo tee /usr/local/bin/check-db > /dev/null <<'EOF'
+#!/usr/bin/env bash
+exec env PGPASSWORD=postgres psql -h db -U postgres -c '\l'
+EOF
+sudo chmod +x /usr/local/bin/sim-start /usr/local/bin/sim-app /usr/local/bin/sim-sockets /usr/local/bin/sim-migrate /usr/local/bin/sim-generate /usr/local/bin/sim-rebuild /usr/local/bin/docs-dev /usr/local/bin/pgc /usr/local/bin/check-db
+
 # Clean and reinstall dependencies to ensure platform compatibility
 echo "📦 Cleaning and reinstalling dependencies..."
 if [ -d "node_modules" ]; then

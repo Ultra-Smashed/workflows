@@ -3,18 +3,42 @@
 # Source this file to add project-specific commands to your shell
 # Add to your ~/.bashrc or ~/.zshrc: source /workspace/.devcontainer/sim-commands.sh
 
-# Project-specific aliases for Sim development
-alias sim-start="cd /workspace && bun run dev:full"
-alias sim-app="cd /workspace && bun run dev"
-alias sim-sockets="cd /workspace && bun run dev:sockets"
-alias sim-migrate="cd /workspace/apps/sim && bunx drizzle-kit push"
-alias sim-generate="cd /workspace/apps/sim && bunx drizzle-kit generate"
-alias sim-rebuild="cd /workspace && bun run build && bun run start"
-alias docs-dev="cd /workspace/apps/docs && bun run dev"
+sim-start() {
+  cd /workspace && bun run dev:full
+}
+
+sim-app() {
+  cd /workspace && bun run dev
+}
+
+sim-sockets() {
+  cd /workspace && bun run dev:sockets
+}
+
+sim-migrate() {
+  cd /workspace/packages/db && bun run db:migrate
+}
+
+sim-generate() {
+  cd /workspace/packages/db && bunx drizzle-kit generate --config=./drizzle.config.ts
+}
+
+sim-rebuild() {
+  cd /workspace && bun run build && bun run start
+}
+
+docs-dev() {
+  cd /workspace/apps/docs && bun run dev
+}
 
 # Database connection helpers
-alias pgc="PGPASSWORD=postgres psql -h db -U postgres -d simstudio"
-alias check-db="PGPASSWORD=postgres psql -h db -U postgres -c '\l'"
+pgc() {
+  PGPASSWORD=postgres psql -h db -U postgres -d simstudio
+}
+
+check-db() {
+  PGPASSWORD=postgres psql -h db -U postgres -c '\l'
+}
 
 # Default to workspace directory
 cd /workspace 2>/dev/null || true
