@@ -468,3 +468,17 @@ Two hard rules that the skills assume:
 
 For the full authoring instructions — SubBlock property tables, `condition`/`dependsOn`/`required`/`mode`/`canonicalParamId` syntax, required block metadata (`integrationType`, `tags`, `authMode`, `docsLink`, `{Service}BlockMeta`), file-input/`normalizeFileInput` patterns, and checklists — use the skills: `/add-integration` (end-to-end), `/add-tools`, `/add-block`, `/add-trigger`.
 
+## Cursor Cloud specific instructions
+
+Cursor Cloud uses `.cursor/environment.json` for repo-scoped environment setup. The install command is `bash scripts/cursor-cloud-install.sh`; it ensures Bun, Docker/Compose, fork env files, and workspace dependencies are present. The start command is `bash scripts/cursor-cloud-start.sh`; it starts Docker when needed and brings up the Postgres 17 + pgvector `db` service from `docker-compose.local.yml`.
+
+Expected ports:
+
+- `3000` — Sim app
+- `3001` — docs
+- `3002` — realtime Socket.IO
+- `3003` — marketing overlay
+- `5432` — local Postgres
+
+If Docker cannot use the system service inside a Cloud container, the start script falls back to a local `dockerd` process using `vfs` storage with iptables disabled, which is compatible with the Cursor Cloud constraints observed for this repo.
+
