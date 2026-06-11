@@ -8,6 +8,12 @@ echo "🔧 Setting up Sim development environment..."
 # Change to the workspace root directory
 cd /workspace
 
+# Create local development env files with valid secrets before tools read env.
+if [ -f "fork-kit/bootstrap-fork.sh" ]; then
+  echo "📄 Bootstrapping local fork env files..."
+  bash fork-kit/bootstrap-fork.sh
+fi
+
 # Install global packages for development (done at runtime, not build time)
 echo "📦 Installing global development tools..."
 bun install -g turbo drizzle-kit typescript @types/node 2>/dev/null || {

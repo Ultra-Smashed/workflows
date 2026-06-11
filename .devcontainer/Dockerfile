@@ -1,35 +1,34 @@
-FROM oven/bun:1.3.13-alpine
+FROM oven/bun:1.3.13
 
-# Install necessary packages for development
-RUN apk add --no-cache \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    bash \
+    bash-completion \
+    ca-certificates \
     git \
     curl \
     wget \
     jq \
     sudo \
-    postgresql-client \
     vim \
     nano \
-    bash \
-    bash-completion \
     zsh \
-    zsh-vcs \
-    ca-certificates \
-    shadow
+    postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user with matching UID/GID
 ARG USERNAME=bun
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Create user group if it doesn't exist
 RUN if ! getent group $USER_GID >/dev/null; then \
-        addgroup -g $USER_GID $USERNAME; \
+        groupadd --gid $USER_GID $USERNAME; \
     fi
 
-# Create user if it doesn't exist
 RUN if ! getent passwd $USER_UID >/dev/null; then \
-        adduser -D -u $USER_UID -G $(getent group $USER_GID | cut -d: -f1) $USERNAME; \
+        useradd --uid $USER_UID --gid $USER_GID --create-home --shell /bin/bash $USERNAME; \
     fi
 
 # Add sudo support
@@ -45,3 +44,4 @@ WORKDIR /workspace
 EXPOSE 3000
 EXPOSE 3001
 EXPOSE 3002
+EXPOSE 3003
