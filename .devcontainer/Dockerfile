@@ -1,6 +1,8 @@
-FROM oven/bun:1.3.13
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV BUN_INSTALL=/home/bun/.bun
+ENV PATH=/home/bun/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -20,26 +22,24 @@ RUN apt-get update \
     pkg-config \
     python3 \
     postgresql-client \
+    unzip \
   && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user with matching UID/GID
 ARG USERNAME=bun
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN if ! getent group $USER_GID >/dev/null; then \
-        groupadd --gid $USER_GID $USERNAME; \
-    fi
-
-RUN if ! getent passwd $USER_UID >/dev/null; then \
-        useradd --uid $USER_UID --gid $USER_GID --create-home --shell /bin/bash $USERNAME; \
-    fi
-
-# Add sudo support
-RUN echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+RUN if getent passwd vscode >/dev/null; then userdel -r vscode; fi \
+  && if getent group $USER_GID >/dev/null; then groupmod -n $USERNAME "$(getent group $USER_GID | cut -d: -f1)"; else groupadd --gid $USER_GID $USERNAME; fi \
+  && useradd --uid $USER_UID --gid $USER_GID --create-home --shell /bin/bash $USERNAME \
+  && echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME
 
 RUN echo "export PATH=\$PATH:/home/$USERNAME/.bun/bin" >> /etc/profile
+
+USER bun
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.13"
+USER root
 
 COPY .devcontainer/install-commands.sh /tmp/install-commands.sh
 RUN bash /tmp/install-commands.sh && rm /tmp/install-commands.sh
