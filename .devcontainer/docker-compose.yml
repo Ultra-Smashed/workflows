@@ -26,6 +26,7 @@ services:
       - SOCKET_SERVER_URL=${SOCKET_SERVER_URL:-http://realtime:3002}
       - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL:-}
       - BUN_INSTALL_CACHE_DIR=/home/bun/.bun/cache
+      - TMPDIR=/home/bun/.cache/tmp
     depends_on:
       db:
         condition: service_healthy
@@ -57,6 +58,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret-at-least-32-characters-long}
       - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-dev-internal-api-secret-min-32-chars}
       - REDIS_URL=${REDIS_URL:-}
+      - TMPDIR=/home/bun/.cache/tmp
     depends_on:
       db:
         condition: service_healthy

@@ -8,6 +8,10 @@ echo "🔧 Setting up Sim development environment..."
 # Change to the workspace root directory
 cd /workspace
 
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR" ~/.bun/cache
+chmod 700 "$TMPDIR" ~/.bun ~/.bun/cache
+
 # Create local development env files with valid secrets before tools read env.
 if [ -f "fork-kit/bootstrap-fork.sh" ]; then
   echo "📄 Bootstrapping local fork env files..."
@@ -55,30 +59,44 @@ fi
 echo "🔧 Installing project command wrappers..."
 sudo tee /usr/local/bin/sim-start > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace && exec bun run dev:full
 EOF
 sudo tee /usr/local/bin/sim-app > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace && exec bun run dev
 EOF
 sudo tee /usr/local/bin/sim-sockets > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace && exec bun run dev:sockets
 EOF
 sudo tee /usr/local/bin/sim-migrate > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace/packages/db && exec bun run db:migrate
 EOF
 sudo tee /usr/local/bin/sim-generate > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace/packages/db && exec bunx drizzle-kit generate --config=./drizzle.config.ts
 EOF
 sudo tee /usr/local/bin/sim-rebuild > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace && bun run build && exec bun run start
 EOF
 sudo tee /usr/local/bin/docs-dev > /dev/null <<'EOF'
 #!/usr/bin/env bash
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR"
 cd /workspace/apps/docs && exec bun run dev
 EOF
 sudo tee /usr/local/bin/pgc > /dev/null <<'EOF'
@@ -99,10 +117,6 @@ if [ -d "node_modules" ]; then
   rm -rf apps/sim/node_modules
   rm -rf apps/docs/node_modules
 fi
-
-# Ensure Bun cache directory exists and has correct permissions
-mkdir -p ~/.bun/cache
-chmod 700 ~/.bun ~/.bun/cache
 
 # Install dependencies with platform-specific binaries
 echo "Installing dependencies with Bun..."
