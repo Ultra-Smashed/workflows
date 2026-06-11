@@ -8,6 +8,11 @@ ensure-sim-tempdir() {
   mkdir -p "$TMPDIR"
 }
 
+sim-setup() {
+  ensure-sim-tempdir
+  cd /workspace && bash fork-kit/bootstrap-fork.sh && bun install && cd packages/db && bun run db:migrate
+}
+
 sim-start() {
   ensure-sim-tempdir
   cd /workspace && bun run dev:full
@@ -64,6 +69,7 @@ if [ -z "$SIM_WELCOME_SHOWN" ]; then
   echo "🚀 Sim Development Environment"
   echo ""
   echo "Project commands:"
+  echo "  sim-setup      - Install deps and run DB migrations"
   echo "  sim-start      - Start app + socket server"
   echo "  sim-app        - Start only main app"
   echo "  sim-sockets    - Start only socket server"

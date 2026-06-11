@@ -18,12 +18,6 @@ if [ -f "fork-kit/bootstrap-fork.sh" ]; then
   bash fork-kit/bootstrap-fork.sh
 fi
 
-# Install global packages for development (done at runtime, not build time)
-echo "📦 Installing global development tools..."
-bun install -g turbo drizzle-kit typescript @types/node 2>/dev/null || {
-  echo "⚠️ Some global packages may already be installed, continuing..."
-}
-
 # Set up bun completions (with proper shell detection)
 echo "🔧 Setting up shell completions..."
 if [ -n "$SHELL" ] && [ -f "$SHELL" ]; then
@@ -57,6 +51,18 @@ if [ ! -f ~/.bashrc ] && [ ! -f ~/.zshrc ]; then
 fi
 
 echo "🔧 Installing project command wrappers..."
+sudo tee /usr/local/bin/sim-setup > /dev/null <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
+mkdir -p "$TMPDIR" ~/.bun/cache
+chmod 700 "$TMPDIR" ~/.bun ~/.bun/cache
+cd /workspace
+bash fork-kit/bootstrap-fork.sh
+bun install
+cd packages/db
+bun run db:migrate
+EOF
 sudo tee /usr/local/bin/sim-start > /dev/null <<'EOF'
 #!/usr/bin/env bash
 export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
@@ -107,88 +113,18 @@ sudo tee /usr/local/bin/check-db > /dev/null <<'EOF'
 #!/usr/bin/env bash
 exec env PGPASSWORD=postgres psql -h db -U postgres -c '\l'
 EOF
-sudo chmod +x /usr/local/bin/sim-start /usr/local/bin/sim-app /usr/local/bin/sim-sockets /usr/local/bin/sim-migrate /usr/local/bin/sim-generate /usr/local/bin/sim-rebuild /usr/local/bin/docs-dev /usr/local/bin/pgc /usr/local/bin/check-db
-
-# Clean and reinstall dependencies to ensure platform compatibility
-echo "📦 Cleaning and reinstalling dependencies..."
-if [ -d "node_modules" ]; then
-  echo "Removing existing node_modules to ensure platform compatibility..."
-  rm -rf node_modules
-  rm -rf apps/sim/node_modules
-  rm -rf apps/docs/node_modules
-fi
-
-# Install dependencies with platform-specific binaries
-echo "Installing dependencies with Bun..."
-bun install
-
-# Check for native dependencies
-echo "Checking for native dependencies compatibility..."
-if grep -q '"trustedDependencies"' apps/sim/package.json 2>/dev/null; then
-  echo "⚠️ Native dependencies detected. Bun will handle compatibility during install."
-fi
-
-# Set up environment variables if .env doesn't exist for the sim app
-if [ ! -f "apps/sim/.env" ]; then
-  echo "📄 Creating apps/sim/.env from template..."
-  if [ -f "apps/sim/.env.example" ]; then
-    cp apps/sim/.env.example apps/sim/.env
-  else
-    echo "DATABASE_URL=postgresql://postgres:postgres@db:5432/simstudio" > apps/sim/.env
-  fi
-fi
-
-# Set up env for the realtime server (must match the shared values in apps/sim/.env)
-if [ ! -f "apps/realtime/.env" ] && [ -f "apps/realtime/.env.example" ]; then
-  echo "📄 Creating apps/realtime/.env from template..."
-  cp apps/realtime/.env.example apps/realtime/.env
-fi
-
-# Set up packages/db/.env for drizzle-kit and migration scripts
-if [ ! -f "packages/db/.env" ] && [ -f "packages/db/.env.example" ]; then
-  echo "📄 Creating packages/db/.env from template..."
-  cp packages/db/.env.example packages/db/.env
-fi
-
-# Generate schema and run database migrations
-echo "🗃️ Running database schema generation and migrations..."
-echo "Generating schema..."
-cd apps/sim
-bunx drizzle-kit generate
-cd ../..
-
-echo "Waiting for database to be ready..."
-# Try to connect to the database, but don't fail the script if it doesn't work
-(
-  timeout=60
-  while [ $timeout -gt 0 ]; do
-    if PGPASSWORD=postgres psql -h db -U postgres -c '\q' 2>/dev/null; then
-      echo "Database is ready!"
-      cd apps/sim
-      DATABASE_URL=postgresql://postgres:postgres@db:5432/simstudio bunx drizzle-kit push
-      cd ../..
-      break
-    fi
-    echo "Database is unavailable - sleeping (${timeout}s remaining)"
-    sleep 5
-    timeout=$((timeout - 5))
-  done
-  
-  if [ $timeout -le 0 ]; then
-    echo "⚠️ Database connection timed out, skipping migrations"
-  fi
-) || echo "⚠️ Database setup had issues but continuing..."
+sudo chmod +x /usr/local/bin/sim-setup /usr/local/bin/sim-start /usr/local/bin/sim-app /usr/local/bin/sim-sockets /usr/local/bin/sim-migrate /usr/local/bin/sim-generate /usr/local/bin/sim-rebuild /usr/local/bin/docs-dev /usr/local/bin/pgc /usr/local/bin/check-db
 
 # Clear the welcome message flag to ensure it shows after setup
 unset SIM_WELCOME_SHOWN
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ Sim development environment setup complete!"
+echo "✅ Sim development container bootstrap complete!"
 echo ""
-echo "Your environment is now ready. A new terminal session will show"
-echo "available commands. You can start the development server with:"
+echo "Open a terminal and run the heavier setup when you are ready:"
 echo ""
+echo "  sim-setup"
 echo "  sim-start"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
