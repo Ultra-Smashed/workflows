@@ -6,7 +6,8 @@ cat > /usr/local/bin/sim-setup <<'EOF'
 set -euo pipefail
 export TMPDIR="${TMPDIR:-$HOME/.cache/tmp}"
 mkdir -p "$TMPDIR" ~/.bun/cache
-chmod 700 "$TMPDIR" ~/.bun ~/.bun/cache
+sudo chown -R "$(id -u):$(id -g)" "$TMPDIR" ~/.bun >/dev/null 2>&1 || true
+chmod 700 "$TMPDIR" >/dev/null 2>&1 || true
 cd /workspace
 bash fork-kit/bootstrap-fork.sh
 bun install
