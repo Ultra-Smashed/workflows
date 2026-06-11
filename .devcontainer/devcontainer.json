@@ -33,7 +33,7 @@
 
   "forwardPorts": [3000, 3001, 3002, 3003, 5432],
 
-  "postCreateCommand": "bash -c 'bash .devcontainer/post-create.sh || true'",
+  "postCreateCommand": "bash -c 'true'",
 
   "remoteUser": "bun"
 }
